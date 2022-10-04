@@ -3,6 +3,7 @@
 	"version": "0.3.1",
 	"description": "Transform an LCOV file using sourcemaps.",
 	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
 	"repository": {
 		"type": "git",
 		"url": "git://github.com/uskrai/lcov-sourcemap-ts"
