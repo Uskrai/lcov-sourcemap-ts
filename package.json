@@ -1,6 +1,6 @@
 {
 	"name": "lcov-sourcemap-ts",
-	"version": "0.3.1",
+	"version": "0.4.0",
 	"description": "Transform an LCOV file using sourcemaps.",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
