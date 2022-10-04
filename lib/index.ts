@@ -18,31 +18,33 @@ import { OutputFile } from "./file";
 
 type SourcemapResolve = (path: string) => string;
 
-export async function getLcov(
-  lcov: string,
-  sourcemaps: SourcemapResolve,
-  sourceDir: string
-) {
-  let file = await getTransformedFiles(lcov, sourcemaps, sourceDir);
+export interface LcovSourceMapOption {
+  // resolving map source
+  // default to ${path}.map
+  sourcemaps: SourcemapResolve;
 
-  return getOutputLcov(file, sourceDir);
+  // path to lcov file
+  lcov: string;
+
+  sourceDir: string;
+}
+
+export async function getLcov(options: LcovSourceMapOption) {
+  let file = await getTransformedFiles(options);
+
+  return getOutputLcov(file, options.sourceDir);
 }
 
 export async function writeLcov(
-  lcov: string,
-  sourcemaps: SourcemapResolve,
-  sourceDir: string,
-  outputFile: string
+  outputFile: string,
+  options: LcovSourceMapOption
 ) {
-  let data = await getLcov(lcov, sourcemaps, sourceDir);
+  let data = await getLcov(options);
 
   return await fs.writeFile(outputFile, data);
-  // return getLcov(lcov, sourcemaps, sourceDir).then(function (lcov: LcovFile) {
-  //   return await fs.writeFile(outputFile, lcov);
-  // });
 }
 
-async function getOutputLcov(files: OutputFile[], sourceDir: string) {
+export async function getOutputLcov(files: OutputFile[], sourceDir: string) {
   sourceDir = sourceDir || process.cwd();
 
   const resolver = await Promise.all(
@@ -70,7 +72,7 @@ async function getOutputLcov(files: OutputFile[], sourceDir: string) {
 
       return it;
     })
-  ).then(it => _.filter(it));
+  ).then((it) => _.filter(it));
 
   var output: string[] = [];
   _.each(resolver, function (file_1: OutputFile) {
@@ -79,28 +81,22 @@ async function getOutputLcov(files: OutputFile[], sourceDir: string) {
   return output.join("\n");
 }
 
-async function getTransformedFiles(
-  lcov: string,
-  sourcemaps: SourcemapResolve,
-  sourceDir: string
-) {
-  let data = await getData(lcov, sourcemaps);
+export async function getTransformedFiles(options: LcovSourceMapOption): Promise<OutputFile[]> {
+  let data = await getData(options);
 
-  return getData(lcov, sourcemaps).then(function (data) {
-    return _.chain(data.lcov)
-      .map(function (lcov, key) {
-        var sourcemap = data.sourcemap[key];
-        if (!sourcemap) {
-          throw new Error("Missing sourcemap: " + key);
-        }
-        return transformLcovMap(lcov, sourcemap, sourceDir);
-      })
-      .map(function (group) {
-        return _.values(group);
-      })
-      .flatten()
-      .value();
-  });
+  return _.chain(data.lcov)
+    .map(function (lcov, key) {
+      var sourcemap = data.sourcemap[key];
+      if (!sourcemap) {
+        throw new Error("Missing sourcemap: " + key);
+      }
+      return transformLcovMap(lcov, sourcemap, options.sourceDir);
+    })
+    .map(function (group) {
+      return _.values(group);
+   })
+    .flatten()
+    .value();
 }
 
 type OutputMap = { [key: string]: OutputFile };
@@ -195,10 +191,10 @@ function transformLcovMap(
   return files;
 }
 
-export async function getData(lcovpath: string, sourcemaps: SourcemapResolve) {
-  let lcov = await getLcovData(lcovpath);
+export async function getData(options: LcovSourceMapOption) {
+  let lcov = await getLcovData(options.lcov);
 
-  let sourcemap = await getSourcemapsData(lcov, sourcemaps);
+  let sourcemap = await getSourcemapsData(lcov, options);
 
   return {
     lcov,
@@ -215,10 +211,10 @@ type SourcemapMap = {
 };
 async function getSourcemapsData(
   lcov: LcovMap,
-  sourcemaps: SourcemapResolve
+  options: LcovSourceMapOption
 ): Promise<SourcemapMap> {
   let sources = Object.entries(lcov).map(async ([lcovpath, _]) => {
-    let sourcepath = sourcemaps(lcovpath);
+    let sourcepath = options.sourcemaps?.(lcovpath) ?? `${lcovpath}.map`;
     let file = await fs.readFile(sourcepath);
 
     let content = (() => {
