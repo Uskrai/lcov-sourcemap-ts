@@ -1,11 +1,11 @@
 {
 	"name": "lcov-sourcemap-ts",
-	"version": "0.3.3",
+	"version": "0.3.0",
 	"description": "Transform an LCOV file using sourcemaps.",
 	"main": "./lib/index.ts",
 	"repository": {
 		"type": "git",
-		"url": "git://github.com/flowpl/lcov-sourcemap"
+		"url": "git://github.com/uskrai/lcov-sourcemap-ts"
 	},
 	"keywords": [
 		"lcov",
@@ -15,9 +15,9 @@
 	"author": "Jesse Zhang",
 	"license": "MIT",
 	"bugs": {
-		"url": "https://github.com/flowpl/lcov-sourcemap/issues"
+		"url": "https://github.com/uskrai/lcov-sourcemap-ts/issues"
 	},
-	"homepage": "https://github.com/flowpl/lcov-sourcemap",
+	"homepage": "https://github.com/uskrai/lcov-sourcemap-ts",
 	"dependencies": {
 		"convert-source-map": "1.8.0",
 		"lcov-parse": "1.0.0",
